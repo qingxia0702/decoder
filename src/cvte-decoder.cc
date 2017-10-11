@@ -20,14 +20,15 @@
 #include "nnet3/nnet-am-decodable-simple.h"
 #include "nnet3/nnet-utils.h"
 #include "base/timer.h"
-
+#include "math.h"
 //Function: Decoding and cout the result
 //@para1: Reference of decoder class
 //@para2: Reference of decodable interface class
 //@para3: Table of words.txt
 bool SpeakinUtteranceDecoder(kaldi::LatticeFasterDecoder& decoder,
                              kaldi::DecodableInterface& decodable,
-                             const fst::SymbolTable* word_syms) {
+                            std::vector<int32>* alignment,
+                            std::vector<int32>* words) {
 
     if(!decoder.Decode(&decodable)) {
         std::cout << "Failed to decode file!" << std::endl;
@@ -44,17 +45,9 @@ bool SpeakinUtteranceDecoder(kaldi::LatticeFasterDecoder& decoder,
         std::cout << "Failed to get traceback for utterance " << std::endl;
     }
 
-    std::vector<int32> alignment;
-    std::vector<int32> words;
     kaldi::LatticeWeight weight;
-    fst::GetLinearSymbolSequence(decoded, &alignment, &words, &weight);
+    fst::GetLinearSymbolSequence(decoded, alignment, words, &weight);
     
-    //cout the result
-    for( size_t i = 0; i < words.size(); i++ ) {
-        std::string s = word_syms->Find(words[i]);
-        std::cout << s << ' ';
-    }
-    std::cout << std::endl;
     return true;
 
 }
@@ -87,9 +80,9 @@ bool SpeakinFeatureComputer(std::string wave_filename,
     return true;
 }
 
-//Function:
-//para1:
-//para2:
+//Function:Computer feature cmvn
+//para1: Input features matrix
+//para2: cmvn state matrix
 bool SpeakinCmvnComputer(kaldi::Matrix<kaldi::BaseFloat> features,
                          kaldi::Matrix<double>* cmvn) {
     try{
@@ -102,9 +95,9 @@ bool SpeakinCmvnComputer(kaldi::Matrix<kaldi::BaseFloat> features,
     return true;
 }
 
-//Function:
-//para1:
-//para2:
+//Function:Apply cmvn to feature matrix
+//para1: Cmvn states to apply
+//para2: feature matrix with cmvn
 bool SpeakinApplyCmvn(kaldi::Matrix<double> cmvn,
                       kaldi::Matrix<kaldi::BaseFloat> *cmvn_features) {
     try{
@@ -114,6 +107,24 @@ bool SpeakinApplyCmvn(kaldi::Matrix<double> cmvn,
         return false;
     }
     return true;
+}
+
+//Function:
+//para1:
+//para2:
+bool SpeakinWordsLocation(std::vector<int32> ali,
+        std::vector<int32>* locations) {
+    int32 phone_start = ali[0];
+    locations->push_back(0);
+
+    for(size_t i = 1; i < ali.size(); i++) {
+        if(ali[i] != phone_start) {
+            if(std::abs(ali[i] - phone_start) != 1) {
+                locations->push_back(i);
+                phone_start = ali[i];
+            }
+        }
+    }
 }
 
 int main(int argc, char *argv[]) {
@@ -189,7 +200,37 @@ int main(int argc, char *argv[]) {
                                                            online_ivector_period,
                                                            &compiler);
         //Decoding
-        SpeakinUtteranceDecoder(decoder, nnet_decodable, word_syms);
+        std::vector<int32> alignment,words;
+        SpeakinUtteranceDecoder(decoder, nnet_decodable, &alignment, &words);
+
+        //Compute split location
+        std::vector<int32> locations;
+        SpeakinWordsLocation(alignment, &locations);
+        //cout the result
+        std::cout << "RECOGNIZE RESULT: ";
+        for( size_t i = 0; i < words.size(); i++ ) {
+            std::string s = word_syms->Find(words[i]);
+            std::cout << s << ' ';
+        }
+        std::cout << std::endl;
+
+        std::cout << "ALIGNMENT RESULT: ";
+        for( size_t i = 0; i < alignment.size(); i++ ) {
+            std::cout << alignment[i] << ' ';
+        }
+        std::cout << std::endl;
+        
+        std::cout << "LOCATION RESULT: ";
+        for( size_t i = 0; i < locations.size(); i++ ) {
+            std::cout << locations[i] << ' ';
+        }
+        std::cout << std::endl;
+        
+        std::cout << "LOCATION START: ";
+        for( size_t i = 0; i < locations.size(); i++ ) {
+            std::cout << alignment[locations[i]] << ' ';
+        }
+        std::cout << std::endl;
     }
     
 }//main
