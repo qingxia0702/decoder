@@ -109,22 +109,86 @@ bool SpeakinApplyCmvn(kaldi::Matrix<double> cmvn,
     return true;
 }
 
-//Function:
-//para1:
-//para2:
-bool SpeakinWordsLocation(std::vector<int32> ali,
-        std::vector<int32>* locations) {
+//Function: Find the location to splite
+//para1: Alignment vector
+//para2: Split length(defualt 8 word per file)
+//para3: Output the result of split location as a vector
+void SpeakinWordsLocation(std::vector<int32> ali,
+                          int32 phone_num_per_word,
+                          std::vector<int32>* locations) {
     int32 phone_start = ali[0];
-    locations->push_back(0);
-
-    for(size_t i = 1; i < ali.size(); i++) {
+    int32 num = 1;
+    
+    for(size_t i = 0; i < ali.size(); i++) {
         if(ali[i] != phone_start) {
             if(std::abs(ali[i] - phone_start) != 1) {
-                locations->push_back(i);
+                if(ali[i] != 2) {
+                    if(num == phone_num_per_word) {
+                        locations->push_back(i);
+                        num = 1;
+                    } else {
+                        num++;
+                    }
+                }
                 phone_start = ali[i];
             }
         }
     }
+}
+
+//Function: Split a long wav file to pieces
+//para1: Locations to split
+//para2: Frame length used in feature extraction
+//para3: Frame offset used in feature extraction
+//para4: Wave file need to split
+bool SpeakinWavSpliter(std::vector<int32> locations,
+                       kaldi::BaseFloat frame_len,
+                       kaldi::BaseFloat offset,
+                       std::string wave_filename){
+    std::string wave_output_filename;
+    kaldi::Input wave_input(wave_filename);
+    kaldi::WaveData wave_data_input;
+    wave_data_input.Read(wave_input.Stream());
+    bool binary = true;
+    
+    std::cout << "wave SampFreq: " << wave_data_input.SampFreq() << std::endl;
+    std::cout << "wave data cols: " << wave_data_input.Data().NumCols() << std::endl;
+    std::cout << "wave data rows: " << wave_data_input.Data().NumRows() << std::endl;
+
+    int32 splite_start, splite_end;
+    //Foreach the input vector to get the loaction to split
+    try{
+        std::cout << "splite location is:" << std::endl;
+        for(size_t i = 0; i < locations.size() - 1; i++) {
+            //Transform frame location to wave data location
+            splite_start = static_cast<int32>(locations[i] * offset * wave_data_input.SampFreq());
+            splite_end = static_cast<int32>((locations[i + 1] * offset + frame_len) * wave_data_input.SampFreq());
+            
+            std::cout << locations[i] << " ";
+            std::cout << locations[i + 1] << "------";
+            std::cout << splite_start << " ";
+            std::cout << splite_end << std::endl;
+            //Output file path 
+            wave_output_filename = std::to_string(i) + ".wav";
+            std::cout << "Output path:" << wave_output_filename << std::endl;
+            
+            //Get first row of original wave data matrix(channal 1)
+            kaldi::SubVector<kaldi::BaseFloat> temp_vec(wave_data_input.Data(), 0);
+            //Do split with start and end location
+            kaldi::SubVector<kaldi::BaseFloat> splite_vec(temp_vec, splite_start, (splite_end - splite_start + 1));
+            kaldi::Matrix<kaldi::BaseFloat> output_data(1 ,splite_vec.Dim());
+            output_data.CopyRowFromVec(splite_vec, 0);
+            
+            //Write new wave file
+            kaldi::WaveData wave_data_output(wave_data_input.SampFreq(), output_data);
+            kaldi::Output wave_output(wave_output_filename, binary, false);
+            wave_data_output.Write(wave_output.Stream());
+        }
+    } catch(...) {
+        std::cout << "ERROR: Do wave splite failed!" << std::endl;
+        return false;
+    }
+    return true;
 }
 
 int main(int argc, char *argv[]) {
@@ -205,7 +269,9 @@ int main(int argc, char *argv[]) {
 
         //Compute split location
         std::vector<int32> locations;
-        SpeakinWordsLocation(alignment, &locations);
+        //Definiton of split length
+        int32 phone_num_per_word = 16;
+        SpeakinWordsLocation(alignment, phone_num_per_word, &locations);
         //cout the result
         std::cout << "RECOGNIZE RESULT: ";
         for( size_t i = 0; i < words.size(); i++ ) {
@@ -231,6 +297,8 @@ int main(int argc, char *argv[]) {
             std::cout << alignment[locations[i]] << ' ';
         }
         std::cout << std::endl;
+
+        SpeakinWavSpliter(locations, 0.025, 0.01, wave_filename);
     }
     
 }//main
