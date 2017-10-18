@@ -67,10 +67,10 @@ ENDIF ()
 
 #Add executable file which to generate
 #Add dynamic link library for executable file
-add_executable(online-cvte-decoder online-cvte-decoder.cc)
-target_link_libraries(online-cvte-decoder ${KALDI_LIB} ${SYSTEM_LIB})
-add_executable(cvte-decoder cvte-decoder.cc)
-target_link_libraries(cvte-decoder ${KALDI_LIB} ${SYSTEM_LIB})
+add_executable(online-decoder online-decoder.cc)
+target_link_libraries(online-decoder ${KALDI_LIB} ${SYSTEM_LIB})
+add_executable(decoder decoder.cc)
+target_link_libraries(decoder ${KALDI_LIB} ${SYSTEM_LIB})
 ##############################################################
 # Be sure that atlas f77blas cblas lapack_atlas are exist in
 # lib directories, an be sure name of .so file should be:
@@ -84,14 +84,14 @@ target_link_libraries(cvte-decoder ${KALDI_LIB} ${SYSTEM_LIB})
 #Set install properties
 IF (APPLE)
     message("Set targets properties on Mac OS")
-    set_target_properties(cvte-decoder PROPERTIES 
+    set_target_properties(decoder PROPERTIES 
                           INSTALL_RPATH "${PROJECT_PATH}/libs")
 ELSE (UNIX)
     message("Set targets properties on unix")
-    set_target_properties(cvte-decoder PROPERTIES 
+    set_target_properties(decoder PROPERTIES 
                           INSTALL_RPATH "${PROJECT_PATH}/libs:${ATLAS_PATH}")
 ENDIF ()
 
-install(TARGETS online-cvte-decoder cvte-decoder
+install(TARGETS online-decoder decoder
         RUNTIME DESTINATION ${PROJECT_PATH}/bin)
 
