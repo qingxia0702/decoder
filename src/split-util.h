@@ -27,12 +27,16 @@ struct SplitOptions {
     //Value for split file by a constant number
     int32 phone_num_pre_word;
     int32 word_num_pre_utt;
+    int32 silence_pre_id;
+    int32 silence_id;
     
     SplitOptions() : min_silence(15),
                      max_split(10),
                      min_frame_num(50),
                      phone_num_pre_word(2),
-                     word_num_pre_utt(8) {};
+                     word_num_pre_utt(8),
+                     silence_pre_id(2),
+                     silence_id(1){};
 };
 
 class Spliter {
@@ -40,10 +44,12 @@ class Spliter {
     SplitOptions options_;
     std::vector<int32> locations_;
     int32 num_;
+    bool silence_spliter_;
 
   public:
-    Spliter(SplitOptions opt){
+    Spliter(SplitOptions opt, bool flag){
         options_ = opt;
+        silence_spliter_ = flag;
     }
     
 
@@ -52,7 +58,7 @@ class Spliter {
         return num_;
     }
     
-    //Function: Find the location to splite
+    //Function: Find the location to splite depended on words
     //para1: Alignment vector
     void WordsLocation(std::vector<int32> ali){
         int32 phone_start = ali[0];
@@ -60,7 +66,7 @@ class Spliter {
         for(size_t i = 0; i < ali.size(); i++) {
             if(ali[i] != phone_start) {
                 if(std::abs(ali[i] - phone_start) != 1) {
-                    if(ali[i] != 2) {
+                    if(ali[i] != options_.silence_pre_id) {
                         if(index == ComputeSplitPhoneNum()) {
                             locations_.push_back(i);
                             index = 1;
@@ -84,15 +90,59 @@ class Spliter {
         std::cout << std::endl;
     }
 
+    //Function: Find the location to splite depended on silence
+    //para1: Alignment vector
+    void SilenceLocation(std::vector<int32> ali){
+        std::map<int32, std::vector<int32> > silence_info_map;
+        std::vector<int32> info;
+        int32 sil_start = 0, sil_end = 0, sil_lenth = 0;
+        bool sil_flag = false;
+
+        //Find all silence and it lenth
+        for(size_t i = 0; i < ali.size(); i++){
+            if(ali[i] == options_.silence_pre_id) {
+                sil_flag = true;
+                sil_start = i;
+                sil_lenth++;
+                info.push_back(sil_start);
+            } else if(ali[i] == options_.silence_id){
+                sil_lenth++;
+            } else {
+                //sil_end = i - 1;
+                if(sil_flag){
+                    info.push_back(i - 1);
+                    silence_info_map.insert(std::pair<int32, std::vector<int32> >(sil_lenth, info));
+                    sil_flag = false;
+                    sil_end = 0;
+                    sil_start = 0;
+                    sil_lenth = 0;
+                    info.clear();
+                }
+            }
+
+        }
+
+        //Print silence information
+        std::map<int32, std::vector<int32> >::iterator index;
+        for(index = silence_info_map.begin(); index != silence_info_map.end(); index++){
+            std::cout << "Silence information: " << index->first 
+                << " " << index->second[0] << " "  << index->second[1] << std::endl; 
+        }
+    }
+
     //Function: Split a long wav file to pieces
     //para2: Frame length used in feature extraction
     //para3: Frame offset used in feature extraction
     //para4: Wave file need to split
-    bool WavSpliterByWords(kaldi::BaseFloat frame_len,
+    bool WavSpliter(kaldi::BaseFloat frame_len,
                            kaldi::BaseFloat offset,
                            std::string wave_filename){
-       
+        
         std::string wave_output_filename;
+        if (silence_spliter_){
+            wave_output_filename = "sil_";
+        }
+        
         kaldi::Input wave_input(wave_filename);
         kaldi::WaveData wave_data_input;
         wave_data_input.Read(wave_input.Stream());
@@ -116,7 +166,7 @@ class Spliter {
                 std::cout << splite_start << " ";
                 std::cout << splite_end << std::endl;
                 //Output file path 
-                wave_output_filename = std::to_string(i) + ".wav";
+                wave_output_filename += std::to_string(i) + ".wav";
                 std::cout << "Output path:" << wave_output_filename << std::endl;
                 
                 //Get first row of original wave data matrix(channal 1)
@@ -136,11 +186,7 @@ class Spliter {
             return false;
         }
         return true;
-    }//WaveSpliterByWords()
-
-    bool WaveSpliterBySilence(std::string wave_filename){
-        
-    }
+    }//WaveSpliter()
 
 };//class Spliter
 }//namespace speakin

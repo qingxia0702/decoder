@@ -91,7 +91,7 @@ class DigiterDecoder {
     //Funtion: Computer fbank feature of sigle .wav file
     //para1: Path of wav file
     //para2: The feature compter result
-    bool SpeakinFeatureComputer(std::string wave_filename,
+    bool FeatureComputer(std::string wave_filename,
                                 kaldi::Matrix<kaldi::BaseFloat>* features) {
         //Read wav file with WaveData
         kaldi::Input wave_input(wave_filename);
@@ -114,7 +114,7 @@ class DigiterDecoder {
     //Function:Computer feature cmvn
     //para1: Input features matrix
     //para2: cmvn state matrix
-    bool SpeakinCmvnComputer(kaldi::Matrix<kaldi::BaseFloat> features,
+    bool CmvnComputer(kaldi::Matrix<kaldi::BaseFloat> features,
                              kaldi::Matrix<double>* cmvn) {
         try{
             kaldi::InitCmvnStats(features.NumCols(), cmvn);
@@ -129,7 +129,7 @@ class DigiterDecoder {
     //Function:Apply cmvn to feature matrix
     //para1: Cmvn states to apply
     //para2: feature matrix with cmvn
-    bool SpeakinApplyCmvn(kaldi::Matrix<double> cmvn,
+    bool ApplyCmvn(kaldi::Matrix<double> cmvn,
                           kaldi::Matrix<kaldi::BaseFloat> *cmvn_features) {
         try{
             kaldi::ApplyCmvn(cmvn, false, cmvn_features);
@@ -145,7 +145,7 @@ class DigiterDecoder {
     //@para1: Reference of decoder class
     //@para2: Reference of decodable interface class
     //@para3: Table of words.txt
-    bool SpeakinUtteranceDecoder(kaldi::LatticeFasterDecoder& decoder,
+    bool UtteranceDecoder(kaldi::LatticeFasterDecoder& decoder,
                                  kaldi::DecodableInterface& decodable,
                                 std::vector<int32>* alignment,
                                 std::vector<int32>* words) {
@@ -182,16 +182,16 @@ class DigiterDecoder {
         kaldi::Matrix<kaldi::BaseFloat> features;
         kaldi::Matrix<double> cmvn;
         
-        SpeakinFeatureComputer(wave_filename, &features);
-        SpeakinCmvnComputer(features,&cmvn); 
-        SpeakinApplyCmvn(cmvn, &features);
+        FeatureComputer(wave_filename, &features);
+        CmvnComputer(features,&cmvn); 
+        ApplyCmvn(cmvn, &features);
         
         kaldi::LatticeFasterDecoder decoder(*decode_fst_, config_.decoder_config);
         kaldi::nnet3::DecodableAmNnetSimple nnet_decodable(config_.decodable_opts,
                                         trans_model_, am_nnet_, features, NULL, NULL, 
                                         config_.online_ivector_period, &compiler);
 
-        SpeakinUtteranceDecoder(decoder, nnet_decodable, alignment, words);
+        UtteranceDecoder(decoder, nnet_decodable, alignment, words);
     }
 };
 }//namespace speakin

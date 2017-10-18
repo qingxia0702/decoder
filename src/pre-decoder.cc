@@ -190,9 +190,9 @@ int main(int argc, char *argv[]) {
         SpeakinUtteranceDecoder(decoder, nnet_decodable, &alignment, &words);
 
         speakin::SplitOptions split_option;
-        speakin::Spliter wave_spliter(split_option);
+        speakin::Spliter wave_spliter(split_option, false);
         wave_spliter.WordsLocation(alignment);
-        wave_spliter.WavSpliterByWords(0.025,0.01,wave_filename);
+        wave_spliter.WavSpliter(0.025,0.01,wave_filename);
 
         //cout the result
         std::cout << "RECOGNIZE RESULT: ";

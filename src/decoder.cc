@@ -17,7 +17,7 @@ int main(int argc, char** argv){
     speakin::DigiterDecoder digiter_decoder(config);
     
     speakin::SplitOptions option;
-    speakin::Spliter wave_spliter(option);
+    speakin::Spliter wave_spliter(option, false);
 
     //Read options
     std::string model_filename = argv[1],
@@ -43,4 +43,6 @@ int main(int argc, char** argv){
         std::cout << alignment[i] << ' ';
     }
     std::cout << std::endl;
+
+    wave_spliter.SilenceLocation(alignment);
 }
