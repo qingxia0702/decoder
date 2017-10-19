@@ -17,7 +17,7 @@ int main(int argc, char** argv){
     speakin::DigiterDecoder digiter_decoder(config);
     
     speakin::SplitOptions option;
-    speakin::Spliter wave_spliter(option, false);
+    speakin::Spliter wave_spliter(option, true);
 
     //Read options
     std::string model_filename = argv[1],
@@ -38,11 +38,14 @@ int main(int argc, char** argv){
         std::cout << s << ' ';
     }
     std::cout << std::endl;
-    std::cout << "ALIGNMENT RESULT: ";
-    for( size_t i = 0; i < alignment.size(); i++ ) {
-        std::cout << alignment[i] << ' ';
-    }
-    std::cout << std::endl;
+    //std::cout << "ALIGNMENT RESULT: ";
+    //for( size_t i = 0; i < alignment.size(); i++ ) {
+        //std::cout << alignment[i] << ' ';
+    //}
+    //std::cout << std::endl;
 
     wave_spliter.SilenceLocation(alignment);
+    wave_spliter.WavSpliter(config.fbank_opts.frame_opts.frame_length_ms/1000,
+                            config.fbank_opts.frame_opts.frame_shift_ms/1000,
+                            wave_filename);
 }

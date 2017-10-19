@@ -16,6 +16,7 @@
 #include "feat/wave-reader.h"
 #include "base/kaldi-common.h"
 #include "util/common-utils.h"
+#include <vector>
 
 namespace speakin{
 
@@ -32,7 +33,7 @@ struct SplitOptions {
     
     SplitOptions() : min_silence(15),
                      max_split(10),
-                     min_frame_num(50),
+                     min_frame_num(100),
                      phone_num_pre_word(2),
                      word_num_pre_utt(8),
                      silence_pre_id(2),
@@ -42,6 +43,7 @@ struct SplitOptions {
 struct SilenceInfo {
     int32 sil_start;
     int32 sil_end;
+    int32 sil_lenth;
     int32 frames_before_sil;
 };
 
@@ -103,7 +105,7 @@ class Spliter {
     //para1: Alignment vector
     void SilenceLocation(std::vector<int32> ali){
         
-        std::map<int32, SilenceInfo> silence_info_map;
+        std::vector<SilenceInfo> silence_info_vec;
         SilenceInfo info;
         int32 sil_lenth = 0;
         int32 frame_lenth = 0;
@@ -112,7 +114,7 @@ class Spliter {
         locations_.clear();
 
         //Find all silence and it lenth
-        for(size_t i = 0; i < ali.size(); i++){
+        for(size_t i = 0; i < ali.size(); i++) {
             if(ali[i] == options_.silence_pre_id) {
                 sil_flag = true;
                 sil_lenth++;
@@ -123,7 +125,8 @@ class Spliter {
                 if(sil_flag){
                     info.sil_end = i - 1;
                     info.frames_before_sil = frame_lenth;
-                    silence_info_map.insert(std::pair<int32, SilenceInfo>(sil_lenth, info));
+                    info.sil_lenth = sil_lenth;
+                    silence_info_vec.push_back(info);
                     sil_flag = false;
                     sil_lenth = 0;
                     frame_lenth = 0;
@@ -133,15 +136,59 @@ class Spliter {
             }
         }
         //Print silence information
-        std::map<int32, SilenceInfo>::iterator index;
-        for(index = silence_info_map.begin(); index != silence_info_map.end(); index++){
-            std::cout << "Silence information: " << index->first 
-                << "  " << index->second.sil_start 
-                << " " << index->second.sil_end 
-                << "-----pre frame: " << index->second.frames_before_sil << std::endl;
+        std::cout << "------------Oringinal information------------------" << std::endl;
+        for(size_t index = 0; index < silence_info_vec.size(); index++) {
+            std::cout << "Silence information: " << index 
+                << " Silence lenth: " << silence_info_vec[index].sil_lenth
+                << " Silence location:" << silence_info_vec[index].sil_start 
+                << " to " << silence_info_vec[index].sil_end 
+                << " Pre frame: " << silence_info_vec[index].frames_before_sil << std::endl;
         }
-        
-
+        //Remove short silence from infomation map
+        std::vector<SilenceInfo>::iterator iter;
+        for(iter = silence_info_vec.begin(); iter != silence_info_vec.end();){
+            if(iter->sil_lenth < options_.min_silence) {
+                silence_info_vec.erase(iter);
+                iter = silence_info_vec.begin();
+            } else {
+                iter++;
+            }
+        }
+        std::cout << "--------------Removed short silence----------------" << std::endl;
+        //Print silence information
+        for(size_t index = 0; index < silence_info_vec.size(); index++) {
+            std::cout << "Silence information: " << index 
+                << " Silence lenth: " << silence_info_vec[index].sil_lenth
+                << " Silence location:" << silence_info_vec[index].sil_start 
+                << " to " << silence_info_vec[index].sil_end 
+                << " Pre frame: " << silence_info_vec[index].frames_before_sil << std::endl;
+        }
+        //Merge short non-silence to former slice
+        for(iter = silence_info_vec.begin() + 1; iter != silence_info_vec.end();) {
+            if(iter->frames_before_sil < options_.min_frame_num) {
+                (iter - 1)->sil_start = iter->sil_start;
+                (iter - 1)->sil_end = iter->sil_end;
+                (iter - 1)->sil_lenth += iter->sil_lenth; 
+                silence_info_vec.erase(iter);
+                iter = silence_info_vec.begin() + 1;
+            } else {
+                iter++;
+            }
+        }
+        std::cout << "--------------Merged short non-silence----------------" << std::endl;
+        //Print silence information
+        for(size_t index = 0; index < silence_info_vec.size(); index++) {
+            std::cout << "Silence information: " << index 
+                << " Silence lenth: " << silence_info_vec[index].sil_lenth
+                << " Silence location:" << silence_info_vec[index].sil_start 
+                << " to " << silence_info_vec[index].sil_end 
+                << " Pre frame: " << silence_info_vec[index].frames_before_sil << std::endl;
+        }
+        //Compute splite locations
+        for(size_t index = 0; index < silence_info_vec.size(); index++) {
+            locations_.push_back(static_cast<int32>((silence_info_vec[index].sil_end 
+                                                    + silence_info_vec[index].sil_start)/2));
+        }
     }
 
     //Function: Split a long wav file to pieces
@@ -153,9 +200,6 @@ class Spliter {
                            std::string wave_filename){
         
         std::string wave_output_filename;
-        if (silence_spliter_){
-            wave_output_filename = "sil_";
-        }
         
         kaldi::Input wave_input(wave_filename);
         kaldi::WaveData wave_data_input;
@@ -171,6 +215,11 @@ class Spliter {
         try{
             std::cout << "splite location is:" << std::endl;
             for(size_t i = 0; i < locations_.size() - 1; i++) {
+                if (silence_spliter_){
+                    wave_output_filename = "sil_";
+                } else {
+                    wave_output_filename = "";
+                }
                 //Transform frame location to wave data location
                 splite_start = static_cast<int32>(locations_[i] * offset * wave_data_input.SampFreq());
                 splite_end = static_cast<int32>((locations_[i + 1] * offset + frame_len) * wave_data_input.SampFreq());
