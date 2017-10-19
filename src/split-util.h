@@ -39,6 +39,12 @@ struct SplitOptions {
                      silence_id(1){};
 };
 
+struct SilenceInfo {
+    int32 sil_start;
+    int32 sil_end;
+    int32 frames_before_sil;
+};
+
 class Spliter {
   private:
     SplitOptions options_;
@@ -63,6 +69,9 @@ class Spliter {
     void WordsLocation(std::vector<int32> ali){
         int32 phone_start = ali[0];
         int32 index = 1;
+    
+        locations_.clear();
+
         for(size_t i = 0; i < ali.size(); i++) {
             if(ali[i] != phone_start) {
                 if(std::abs(ali[i] - phone_start) != 1) {
@@ -93,41 +102,46 @@ class Spliter {
     //Function: Find the location to splite depended on silence
     //para1: Alignment vector
     void SilenceLocation(std::vector<int32> ali){
-        std::map<int32, std::vector<int32> > silence_info_map;
-        std::vector<int32> info;
-        int32 sil_start = 0, sil_end = 0, sil_lenth = 0;
+        
+        std::map<int32, SilenceInfo> silence_info_map;
+        SilenceInfo info;
+        int32 sil_lenth = 0;
+        int32 frame_lenth = 0;
         bool sil_flag = false;
+        
+        locations_.clear();
 
         //Find all silence and it lenth
         for(size_t i = 0; i < ali.size(); i++){
             if(ali[i] == options_.silence_pre_id) {
                 sil_flag = true;
-                sil_start = i;
                 sil_lenth++;
-                info.push_back(sil_start);
+                info.sil_start = i;
             } else if(ali[i] == options_.silence_id){
                 sil_lenth++;
             } else {
-                //sil_end = i - 1;
                 if(sil_flag){
-                    info.push_back(i - 1);
-                    silence_info_map.insert(std::pair<int32, std::vector<int32> >(sil_lenth, info));
+                    info.sil_end = i - 1;
+                    info.frames_before_sil = frame_lenth;
+                    silence_info_map.insert(std::pair<int32, SilenceInfo>(sil_lenth, info));
                     sil_flag = false;
-                    sil_end = 0;
-                    sil_start = 0;
                     sil_lenth = 0;
-                    info.clear();
+                    frame_lenth = 0;
+                } else {
+                    frame_lenth++;
                 }
             }
-
         }
-
         //Print silence information
-        std::map<int32, std::vector<int32> >::iterator index;
+        std::map<int32, SilenceInfo>::iterator index;
         for(index = silence_info_map.begin(); index != silence_info_map.end(); index++){
             std::cout << "Silence information: " << index->first 
-                << " " << index->second[0] << " "  << index->second[1] << std::endl; 
+                << "  " << index->second.sil_start 
+                << " " << index->second.sil_end 
+                << "-----pre frame: " << index->second.frames_before_sil << std::endl;
         }
+        
+
     }
 
     //Function: Split a long wav file to pieces
