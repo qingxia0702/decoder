@@ -69,8 +69,10 @@ ENDIF ()
 #Add dynamic link library for executable file
 add_executable(online-decoder online-decoder.cc)
 target_link_libraries(online-decoder ${KALDI_LIB} ${SYSTEM_LIB})
-add_executable(decoder decoder.cc)
-target_link_libraries(decoder ${KALDI_LIB} ${SYSTEM_LIB})
+add_executable(sil_splite sil_splite.cc)
+target_link_libraries(sil_splite ${KALDI_LIB} ${SYSTEM_LIB})
+add_executable(word_splite word_splite.cc)
+target_link_libraries(word_splite ${KALDI_LIB} ${SYSTEM_LIB})
 ##############################################################
 # Be sure that atlas f77blas cblas lapack_atlas are exist in
 # lib directories, an be sure name of .so file should be:
@@ -84,14 +86,23 @@ target_link_libraries(decoder ${KALDI_LIB} ${SYSTEM_LIB})
 #Set install properties
 IF (APPLE)
     message("Set targets properties on Mac OS")
-    set_target_properties(decoder PROPERTIES 
+    set_target_properties(sil_splite PROPERTIES 
                           INSTALL_RPATH "${PROJECT_PATH}/libs")
 ELSE (UNIX)
     message("Set targets properties on unix")
-    set_target_properties(decoder PROPERTIES 
+    set_target_properties(sil_splite PROPERTIES 
                           INSTALL_RPATH "${PROJECT_PATH}/libs:${ATLAS_PATH}")
 ENDIF ()
 
-install(TARGETS online-decoder decoder
+IF (APPLE)
+    message("Set targets properties on Mac OS")
+    set_target_properties(word_splite PROPERTIES 
+                          INSTALL_RPATH "${PROJECT_PATH}/libs")
+ELSE (UNIX)
+    message("Set targets properties on unix")
+    set_target_properties(word_splite PROPERTIES 
+                          INSTALL_RPATH "${PROJECT_PATH}/libs:${ATLAS_PATH}")
+ENDIF ()
+install(TARGETS sil_splite word_splite
         RUNTIME DESTINATION ${PROJECT_PATH}/bin)
 
