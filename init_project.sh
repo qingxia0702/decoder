@@ -5,7 +5,7 @@
 #@para3: Directory of cvte/other HCLG.fst 
 #   Usage: init_project.sh kaldi-root-path final.mdl HCLG.fst words.txt
 
-if [ $# != 4 ]
+if [ $# != 1 ]
 then
     echo "ERROR: Please entry the right paramentes!"
     echo "Usage: init_project.sh kaldi-root-path final.mdl HCLG.fst words.txt"
@@ -29,11 +29,12 @@ filecheck(){
     done
 }
 
-filecheck include libs models
+#filecheck include libs models
+filecheck include libs
 
-cp $asoutics_modle models
-cp $fst_model models
-cp $words models 
+#cp $asoutics_modle models
+#cp $fst_model models
+#cp $words models 
 
 #Copy .so files from cvte-decoder dependence to libs
 cp $kaldi_root_path/src/lib/* libs 
@@ -52,9 +53,9 @@ do
     cp $line include/$sub
 done < head.list 
 rm head.list
-#cp -r $kaldi_root_path/tools/openfst/include/* include
-#cp -r $kaldi_root_path/tools/ATLAS include 
-#cp -r $kaldi_root_path/tools/CLAPACK include 
+cp -r $kaldi_root_path/tools/openfst/include/* include
+cp -r $kaldi_root_path/tools/ATLAS include 
+cp -r $kaldi_root_path/tools/CLAPACK include 
 
 
 
