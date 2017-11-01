@@ -29,6 +29,10 @@ The main CmakeLists.txt is `src/CMakeLists.txt`, There is some directory path ne
 **3. Usage**
 ```powershell
 #Usage:
-	./cvte-decoder final.mdl HCLG.fst 2017_03_07_16.57.40_2562.wav words.txt
-	./online-cvte-decoder final.mdl HCLG.fst 2017_03_07_16.57.40_2562.wav words.txt
+    # sli_split and word_split are install in PROJECT_PATH/spkdecoders/bin
+	./sli_split final.mdl HCLG.fst 2017_03_07_16.57.40_2562.wav words.txt 15 output-path
+	./word_split final.mdl HCLG.fst 2017_03_07_16.57.40_2562.wav words.txt 8 output-path 
+For batch operation, you can run follow command:
+    #That shell is alse in dir PROJECT_PATH/bin 
+    ./split.sh data-path
 ```
