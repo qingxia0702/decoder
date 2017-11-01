@@ -1,4 +1,4 @@
-//cvte-decoder/src/decoder.cc
+//cvte-decoder/src/sil_split.cc
 //
 //Author:   Pro.Dogegg(Heqing Huang)
 //Time:     2017-10-18 09:15:35
@@ -10,20 +10,36 @@
 
 #include "digiter-decoder.h"
 #include "split-util.h"
+#include <iostream>
 
 int main(int argc, char** argv){
     
-    speakin::DigiterDecoderConfig config;
+    const char* usage = 
+        "Usage: \n "
+        "    ./sil_splite final.mdl HCLG.fst *.wav words.txt $num_min_slience $wave_out_put_path\n"
+        "num_mini_slience mean the mininize frame of silence you want to split";
+
+    if(argc != 7){
+        std::cout << "ERROR: Wrong options!" << std::endl;
+        std::cout << usage << std::endl;
+        return -1;
+    }
+
+    speakin::DigiterDecoderConfig config;  
     speakin::DigiterDecoder digiter_decoder(config);
-    
-    speakin::SplitOptions option;
-    speakin::Spliter wave_spliter(option, true);
 
     //Read options
     std::string model_filename = argv[1],
                 fst_filename =argv[2],
                 wave_filename = argv[3],
-                word_syms_filename = argv[4];
+                word_syms_filename = argv[4],
+                wave_output_path = argv[6];
+    
+    int32 min_silence = std::atoi(argv[5]);
+                
+    speakin::SplitOptions option;
+    option.min_silence = min_silence;
+    speakin::Spliter wave_spliter(option, true);
 
     std::vector<int32> alignment, words;
     fst::SymbolTable *word_syms = NULL;
@@ -44,8 +60,10 @@ int main(int argc, char** argv){
     //}
     //std::cout << std::endl;
 
+
     wave_spliter.SilenceLocation(alignment);
     wave_spliter.WavSpliter(config.fbank_opts.frame_opts.frame_length_ms/1000,
                             config.fbank_opts.frame_opts.frame_shift_ms/1000,
-                            wave_filename);
+                            wave_filename,
+                            wave_output_path);
 }

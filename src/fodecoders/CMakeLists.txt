@@ -69,8 +69,8 @@ ENDIF ()
 
 #Add executable file which to generate
 #Add dynamic link library for executable file
-add_executable(decoder decoder.cc)
-target_link_libraries(decoder ${KALDI_LIB} ${SYSTEM_LIB})
+add_executable(fotalk-decoder fotalk-decoder.cc)
+target_link_libraries(fotalk-decoder ${KALDI_LIB} ${SYSTEM_LIB})
 add_executable(phone-decoder phone-decoder.cc)
 target_link_libraries(phone-decoder ${KALDI_LIB} ${SYSTEM_LIB})
 ##############################################################
@@ -86,11 +86,11 @@ target_link_libraries(phone-decoder ${KALDI_LIB} ${SYSTEM_LIB})
 #Set install properties
 IF (APPLE)
     message("Set targets properties on Mac OS")
-    set_target_properties(decoder PROPERTIES 
+    set_target_properties(fotalk-decoder PROPERTIES 
                           INSTALL_RPATH "${PROJECT_PATH}/libs")
 ELSE (UNIX)
     message("Set targets properties on unix")
-    set_target_properties(decoder PROPERTIES 
+    set_target_properties(fotalk-decoder PROPERTIES 
                           INSTALL_RPATH "${PROJECT_PATH}/libs:${ATLAS_PATH}")
 ENDIF ()
 IF (APPLE)
@@ -103,6 +103,6 @@ ELSE (UNIX)
                           INSTALL_RPATH "${PROJECT_PATH}/libs:${ATLAS_PATH}")
 ENDIF ()
 
-install(TARGETS decoder phone-decoder
+install(TARGETS fotalk-decoder phone-decoder
     RUNTIME DESTINATION ${PROJECT_PATH}/bin/${SUB_PROJECT_NAME})
 

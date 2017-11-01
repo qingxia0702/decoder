@@ -17,6 +17,8 @@
 #include "base/kaldi-common.h"
 #include "util/common-utils.h"
 #include <vector>
+#include <stdlib.h>
+#include <stdio.h>
 
 namespace speakin{
 
@@ -197,7 +199,8 @@ class Spliter {
     //para4: Wave file need to split
     bool WavSpliter(kaldi::BaseFloat frame_len,
                            kaldi::BaseFloat offset,
-                           std::string wave_filename){
+                           std::string wave_filename,
+                           std::string out_put_path){
         
         std::string wave_output_filename;
         
@@ -228,8 +231,11 @@ class Spliter {
                 std::cout << locations_[i + 1] << "------";
                 std::cout << splite_start << " ";
                 std::cout << splite_end << std::endl;
+                
                 //Output file path 
+                
                 wave_output_filename += std::to_string(i) + ".wav";
+                wave_output_filename = out_put_path + "/" + wave_output_filename;
                 std::cout << "Output path:" << wave_output_filename << std::endl;
                 
                 //Get first row of original wave data matrix(channal 1)

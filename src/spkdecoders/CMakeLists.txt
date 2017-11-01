@@ -75,8 +75,8 @@ add_executable(sil_splite sil_splite.cc)
 target_link_libraries(sil_splite ${KALDI_LIB} ${SYSTEM_LIB})
 add_executable(word_splite word_splite.cc)
 target_link_libraries(word_splite ${KALDI_LIB} ${SYSTEM_LIB})
-#add_executable(decoder decoder.cc)
-#target_link_libraries(decoder ${KALDI_LIB} ${SYSTEM_LIB})
+add_executable(decoder decoder.cc)
+target_link_libraries(decoder ${KALDI_LIB} ${SYSTEM_LIB})
 ##############################################################
 # Be sure that atlas f77blas cblas lapack_atlas are exist in
 # lib directories, an be sure name of .so file should be:
@@ -104,21 +104,21 @@ IF (APPLE)
                           INSTALL_RPATH "${PROJECT_PATH}/libs")
 ELSE (UNIX)
     message("Set targets properties on unix")
-    #set_target_properties(word_splite PROPERTIES 
-                          #INSTALL_RPATH "${PROJECT_PATH}/libs:${ATLAS_PATH}")
+    set_target_properties(word_splite PROPERTIES 
+                          INSTALL_RPATH "${PROJECT_PATH}/libs:${ATLAS_PATH}")
 ENDIF ()
 
-#IF (APPLE)
-    #message("Set targets properties on Mac OS")
-    #set_target_properties(decoder PROPERTIES 
-                          #INSTALL_RPATH "${PROJECT_PATH}/libs")
-#ELSE (UNIX)
-    #message("Set targets properties on unix")
-    #set_target_properties(decoder PROPERTIES 
-                          #INSTALL_RPATH "${PROJECT_PATH}/libs:${ATLAS_PATH}")
-#ENDIF ()
-#install(TARGETS decoder
-        #RUNTIME DESTINATION ${PROJECT_PATH}/${SUB_PROJECT_NAME}/bin)
+IF (APPLE)
+    message("Set targets properties on Mac OS")
+    set_target_properties(decoder PROPERTIES 
+                          INSTALL_RPATH "${PROJECT_PATH}/libs")
+ELSE (UNIX)
+    message("Set targets properties on unix")
+    set_target_properties(decoder PROPERTIES 
+                          INSTALL_RPATH "${PROJECT_PATH}/libs:${ATLAS_PATH}")
+ENDIF ()
+install(TARGETS decoder
+        RUNTIME DESTINATION ${PROJECT_PATH}/bin/${SUB_PROJECT_NAME})
 install(TARGETS sil_splite word_splite
         RUNTIME DESTINATION ${PROJECT_PATH}/bin/${SUB_PROJECT_NAME})
 

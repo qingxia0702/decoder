@@ -1,4 +1,4 @@
-//cvte-decoder/src/decoder.cc
+//cvte-decoder/src/word_split.cc
 //
 //Author:   Pro.Dogegg(Heqing Huang)
 //Time:     2017-10-18 09:15:35
@@ -12,18 +12,31 @@
 #include "split-util.h"
 
 int main(int argc, char** argv){
+
+    const char* usage = 
+        "Usage: \n "
+        "    ./word_splite final.mdl HCLG.fst *.wav words.txt $num_of_word_pre_utt $wave_output_path\n"
+        "word_num_pre_utt mean how many words you want in a splited utterance";
+
+    if(argc != 6){
+        std::cout << "ERROR: Wrong options!" << std::endl;
+        std::cout << usage << std::endl;
+        return -1;
+    }
     
     speakin::DigiterDecoderConfig config;
     speakin::DigiterDecoder digiter_decoder(config);
-    
-    speakin::SplitOptions option;
-    speakin::Spliter wave_spliter(option, true);
 
     //Read options
     std::string model_filename = argv[1],
                 fst_filename =argv[2],
                 wave_filename = argv[3],
-                word_syms_filename = argv[4];
+                word_syms_filename = argv[4],
+                wave_output_path = argv[6];
+    
+    speakin::SplitOptions option;
+    option.word_num_pre_utt = std::atoi(argv[5]);
+    speakin::Spliter wave_spliter(option, true);
 
     std::vector<int32> alignment, words;
     fst::SymbolTable *word_syms = NULL;
@@ -47,5 +60,6 @@ int main(int argc, char** argv){
     wave_spliter.WordsLocation(alignment);
     wave_spliter.WavSpliter(config.fbank_opts.frame_opts.frame_length_ms/1000,
                             config.fbank_opts.frame_opts.frame_shift_ms/1000,
-                            wave_filename);
+                            wave_filename,
+                            wave_output_path);
 }
