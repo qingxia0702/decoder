@@ -3,7 +3,7 @@
 if [ $# != 1 ]
 then
     echo "ERROR: Please entry the right paramentes!"
-    echo "Usage: init_project.sh kaldi-root-path final.mdl HCLG.fst words.txt"
+    echo "Usage: ./split.sh data-path"
     exit
 fi
 

@@ -138,15 +138,15 @@ class Spliter {
             }
         }
         //Print silence information
-        std::cout << "------------Oringinal information------------------" << std::endl;
-        for(size_t index = 0; index < silence_info_vec.size(); index++) {
-            std::cout << "Silence information: " << index 
-                << " Silence lenth: " << silence_info_vec[index].sil_lenth
-                << " Silence location:" << silence_info_vec[index].sil_start 
-                << " to " << silence_info_vec[index].sil_end 
-                << " Pre frame: " << silence_info_vec[index].frames_before_sil << std::endl;
-        }
-        //Remove short silence from infomation map
+        //std::cout << "------------Oringinal information------------------" << std::endl;
+        //for(size_t index = 0; index < silence_info_vec.size(); index++) {
+            //std::cout << "Silence information: " << index 
+                //<< " Silence lenth: " << silence_info_vec[index].sil_lenth
+                //<< " Silence location:" << silence_info_vec[index].sil_start 
+                //<< " to " << silence_info_vec[index].sil_end 
+                //<< " Pre frame: " << silence_info_vec[index].frames_before_sil << std::endl;
+        //}
+        ////Remove short silence from infomation map
         std::vector<SilenceInfo>::iterator iter;
         for(iter = silence_info_vec.begin(); iter != silence_info_vec.end();){
             if(iter->sil_lenth < options_.min_silence) {
@@ -156,15 +156,15 @@ class Spliter {
                 iter++;
             }
         }
-        std::cout << "--------------Removed short silence----------------" << std::endl;
-        //Print silence information
-        for(size_t index = 0; index < silence_info_vec.size(); index++) {
-            std::cout << "Silence information: " << index 
-                << " Silence lenth: " << silence_info_vec[index].sil_lenth
-                << " Silence location:" << silence_info_vec[index].sil_start 
-                << " to " << silence_info_vec[index].sil_end 
-                << " Pre frame: " << silence_info_vec[index].frames_before_sil << std::endl;
-        }
+        //std::cout << "--------------Removed short silence----------------" << std::endl;
+        ////Print silence information
+        //for(size_t index = 0; index < silence_info_vec.size(); index++) {
+            //std::cout << "Silence information: " << index 
+                //<< " Silence lenth: " << silence_info_vec[index].sil_lenth
+                //<< " Silence location:" << silence_info_vec[index].sil_start 
+                //<< " to " << silence_info_vec[index].sil_end 
+                //<< " Pre frame: " << silence_info_vec[index].frames_before_sil << std::endl;
+        //}
         //Merge short non-silence to former slice
         for(iter = silence_info_vec.begin() + 1; iter != silence_info_vec.end();) {
             if(iter->frames_before_sil < options_.min_frame_num) {
@@ -177,15 +177,15 @@ class Spliter {
                 iter++;
             }
         }
-        std::cout << "--------------Merged short non-silence----------------" << std::endl;
-        //Print silence information
-        for(size_t index = 0; index < silence_info_vec.size(); index++) {
-            std::cout << "Silence information: " << index 
-                << " Silence lenth: " << silence_info_vec[index].sil_lenth
-                << " Silence location:" << silence_info_vec[index].sil_start 
-                << " to " << silence_info_vec[index].sil_end 
-                << " Pre frame: " << silence_info_vec[index].frames_before_sil << std::endl;
-        }
+        //std::cout << "--------------Merged short non-silence----------------" << std::endl;
+        ////Print silence information
+        //for(size_t index = 0; index < silence_info_vec.size(); index++) {
+            //std::cout << "Silence information: " << index 
+                //<< " Silence lenth: " << silence_info_vec[index].sil_lenth
+                //<< " Silence location:" << silence_info_vec[index].sil_start 
+                //<< " to " << silence_info_vec[index].sil_end 
+                //<< " Pre frame: " << silence_info_vec[index].frames_before_sil << std::endl;
+        //}
         //Compute splite locations
         for(size_t index = 0; index < silence_info_vec.size(); index++) {
             locations_.push_back(static_cast<int32>((silence_info_vec[index].sil_end 
@@ -209,9 +209,9 @@ class Spliter {
         wave_data_input.Read(wave_input.Stream());
         bool binary = true;
         
-        std::cout << "wave SampFreq: " << wave_data_input.SampFreq() << std::endl;
-        std::cout << "wave data cols: " << wave_data_input.Data().NumCols() << std::endl;
-        std::cout << "wave data rows: " << wave_data_input.Data().NumRows() << std::endl;
+        //std::cout << "wave SampFreq: " << wave_data_input.SampFreq() << std::endl;
+        //std::cout << "wave data cols: " << wave_data_input.Data().NumCols() << std::endl;
+        //std::cout << "wave data rows: " << wave_data_input.Data().NumRows() << std::endl;
 
         int32 splite_start, splite_end;
         //Foreach the input vector to get the loaction to split
@@ -227,10 +227,10 @@ class Spliter {
                 splite_start = static_cast<int32>(locations_[i] * offset * wave_data_input.SampFreq());
                 splite_end = static_cast<int32>((locations_[i + 1] * offset + frame_len) * wave_data_input.SampFreq());
                 
-                std::cout << locations_[i] << " ";
-                std::cout << locations_[i + 1] << "------";
-                std::cout << splite_start << " ";
-                std::cout << splite_end << std::endl;
+                //std::cout << locations_[i] << " ";
+                //std::cout << locations_[i + 1] << "------";
+                //std::cout << splite_start << " ";
+                //std::cout << splite_end << std::endl;
                 
                 //Output file path 
                 

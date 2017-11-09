@@ -69,14 +69,18 @@ ENDIF ()
 
 #Add executable file which to generate
 #Add dynamic link library for executable file
-#add_executable(online-decoder online-decoder.cc)
-#target_link_libraries(online-decoder ${KALDI_LIB} ${SYSTEM_LIB})
+add_executable(online-decoder online-decoder.cc)
+target_link_libraries(online-decoder ${KALDI_LIB} ${SYSTEM_LIB})
 add_executable(sil_splite sil_splite.cc)
 target_link_libraries(sil_splite ${KALDI_LIB} ${SYSTEM_LIB})
 add_executable(word_splite word_splite.cc)
 target_link_libraries(word_splite ${KALDI_LIB} ${SYSTEM_LIB})
 add_executable(decoder decoder.cc)
 target_link_libraries(decoder ${KALDI_LIB} ${SYSTEM_LIB})
+add_executable(batch_sil_splite batch_sil_splite.cc)
+target_link_libraries(batch_sil_splite ${KALDI_LIB} ${SYSTEM_LIB})
+add_executable(batch_decoder batch_decoder.cc)
+target_link_libraries(batch_decoder ${KALDI_LIB} ${SYSTEM_LIB})
 ##############################################################
 # Be sure that atlas f77blas cblas lapack_atlas are exist in
 # lib directories, an be sure name of .so file should be:
@@ -117,8 +121,42 @@ ELSE (UNIX)
     set_target_properties(decoder PROPERTIES 
                           INSTALL_RPATH "${PROJECT_PATH}/libs:${ATLAS_PATH}")
 ENDIF ()
-install(TARGETS decoder
+
+IF (APPLE)
+    message("Set targets properties on Mac OS")
+    set_target_properties(online-decoder PROPERTIES 
+                          INSTALL_RPATH "${PROJECT_PATH}/libs")
+ELSE (UNIX)
+    message("Set targets properties on unix")
+    set_target_properties(online-decoder PROPERTIES 
+                          INSTALL_RPATH "${PROJECT_PATH}/libs:${ATLAS_PATH}")
+ENDIF ()
+
+IF (APPLE)
+    message("Set targets properties on Mac OS")
+    set_target_properties(batch_sil_splite PROPERTIES 
+                          INSTALL_RPATH "${PROJECT_PATH}/libs")
+ELSE (UNIX)
+    message("Set targets properties on unix")
+    set_target_properties(batch_sil_splite PROPERTIES 
+                          INSTALL_RPATH "${PROJECT_PATH}/libs:${ATLAS_PATH}")
+ENDIF ()
+IF (APPLE)
+    message("Set targets properties on Mac OS")
+    set_target_properties(batch_decoder PROPERTIES 
+                          INSTALL_RPATH "${PROJECT_PATH}/libs")
+ELSE (UNIX)
+    message("Set targets properties on unix")
+    set_target_properties(batch_decoder PROPERTIES 
+                          INSTALL_RPATH "${PROJECT_PATH}/libs:${ATLAS_PATH}")
+ENDIF ()
+install(TARGETS decoder online-decoder
         RUNTIME DESTINATION ${PROJECT_PATH}/bin/${SUB_PROJECT_NAME})
 install(TARGETS sil_splite word_splite
         RUNTIME DESTINATION ${PROJECT_PATH}/bin/${SUB_PROJECT_NAME})
+install(TARGETS batch_sil_splite
+        RUNTIME DESTINATION ${PROJECT_PATH}/bin/${SUB_PROJECT_NAME})
+install(TARGETS batch_decoder
+        RUNTIME DESTINATION ${PROJECT_PATH}/bin/${SUB_PROJECT_NAME})
+
 

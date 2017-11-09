@@ -4,5 +4,3 @@
 build/
 libs/
 model/
-bin/online-cvte-decoder
-bin/cvte-decoder

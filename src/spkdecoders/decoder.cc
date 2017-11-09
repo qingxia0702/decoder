@@ -7,11 +7,11 @@
 //Function:
 //Usage:
 
-#include "keywords-decoder.h"
+#include "digiter-decoder.h"
 
 int main(int argc, char** argv){
-    fotalk::KeywordsDecoderConfig config;
-    fotalk::KeywordsDecoder keywords_decoder(config);
+    speakin::DigiterDecoderConfig config;
+    speakin::DigiterDecoder decoder(config);
 
     std::string model_filename =argv[1],
                 fst_filename = argv[2],
@@ -22,8 +22,8 @@ int main(int argc, char** argv){
     fst::SymbolTable *word_syms = NULL;
     word_syms = fst::SymbolTable::ReadText(word_syms_filename);
 
-    keywords_decoder.ReadModel(model_filename, fst_filename, word_syms_filename);
-    keywords_decoder.Decode(wave_filename, &alignment, &words);
+    decoder.ReadModel(model_filename, fst_filename, word_syms_filename);
+    decoder.Decode(wave_filename, &alignment, &words);
 
     std::cout << "RECOGNIZE RESULT: ";
     for( size_t i = 0; i < words.size(); i++ ) {
